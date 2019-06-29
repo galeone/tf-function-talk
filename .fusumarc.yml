@@ -1,0 +1,23 @@
+meta:
+  url: "https://pgaleone.eu/tensorflow/tf.function/2019/03/21/dissecting-tf-function-part-1/"
+  name: "Dissecting tf.function to discover AutoGraph strengths and subtleties"
+  author: "Paolo Galeone"
+  thumbnail:
+  description: "AutoGraph, recently introduced in Tensorflow 2.0, allows transforming a subset of Python syntax into its compact and high-performance graph representation. Although powerful, AutoGraph and `tf.function` hide some subtlety that is worth knowing."
+  sns:
+    - twitter
+slide:
+  loop: true
+  sidebar: true
+  targetBlank: true
+  showIndex: false
+  isVertical: false
+  code:
+    languages:
+      - python
+    plugins:
+      - line-numbers
+    theme: default
+extends:
+  js:
+  css: style.css
