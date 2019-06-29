@@ -131,13 +131,13 @@ That is the multiplication of 2 constant matrix followed by the addition of a sc
 Given the **constant** matrices
 <br />
 
-![aX](/images/Ax.png)
+![aX](images/Ax.png)
 <br />
 
-And the scalar **variable** ![b](/images/b.png)
+And the scalar **variable** ![b](images/b.png)
 <br />
 
-Compute ![Ax_b](/images/Ax_b.png)
+Compute ![Ax_b](images/Ax_b.png)
 
 ---
 
