@@ -1,24 +1,188 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta name="theme-color" content="#3498db" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"><meta name="theme-color" content="#3498db"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="AutoGraph, recently introduced in Tensorflow 2.0, allows transforming a subset of Python syntax into its compact and high-performance graph representation. Although powerful, AutoGraph and `tf.function` hide some subtlety that is worth knowing."><title>Dissecting tf.function to discover AutoGraph strengths and subtleties</title><meta property="og:title" content="Dissecting tf.function to discover AutoGraph strengths and subtleties"><meta property="og:type" content="article"><meta property="og:url" content="https://pgaleone.eu/tensorflow/tf.function/2019/03/21/dissecting-tf-function-part-1/"><meta property="og:description" content="AutoGraph, recently introduced in Tensorflow 2.0, allows transforming a subset of Python syntax into its compact and high-performance graph representation. Although powerful, AutoGraph and `tf.function` hide some subtlety that is worth knowing."><link href="vendor.7.fba9d2bb01998ccb161d.css" rel="stylesheet"><link href="main.3.c6731e655aaf6ac74333.css" rel="stylesheet"></head><body><div id="root"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="btn-sidebar" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg><article id="webslides"><section class="aligncenter title"><h1>Dissecting tf.function to discover AutoGraph strengths and subtleties</h1><small><i>How to correctly write graph-convertible functions in TensorFlow 2.0.</i></small></section><section class="aligncenter"><h2>About me</h2><p><img src="images/me_hk.jpg" alt="me"></p><p>Computer engineer | Head of ML &amp; CV @ ZURU Tech Italy | Machine Learning GDE</p><ul><li>Blog: <a href="https://pgaleone.eu/">https://pgaleone.eu/</a></li><li>Github: <a href="galeone">https://github.com/galeone/</a></li><li>Twitter: <a href="https://twitter.com/paolo_galeone">@paolo_galeone</a></li></ul></section><section class="aligncenter section-title"><h2>TensorFlow 2.0 &amp; DataFlow Graphs</h2><ul><li>Execution Speed</li><li>Language Agnostic Representation</li><li>Easy to replicate and distribute</li><li>Automatic Differentiation</li></ul></section><section class="aligncenter"><h2>tf.function and AutoGraph</h2><pre><code class="language-python"># tf.function signature: it is a decorator.
+def function(func=None,
+             input_signature=None,
+             autograph=True,
+             experimental_autograph_options=None)
+</code></pre><p><b>tf.function uses AutoGraph</b></p><p>AutoGraph converts Python control flow statements into appropriate TensorFlow graph ops.</p></section><section class="aligncenter"><h2>tf.function and AutoGraph</h2><p><img src="images/tf-execution.png" alt="tf-execution"></p></section><section class="aligncenter"><h2>The problem</h2><p>Given the <strong>constant</strong> matrices</p><br><p><img src="images/Ax.png" alt="aX"></p><br><p>And the scalar <strong>variable</strong> <img src="images/b.png" alt="b"></p><br><p>Compute <img src="images/Ax_b.png" alt="Ax_b"></p></section><section class="aligncenter"><h2>TensorFlow 1.x solution</h2><pre><code class="language-python">g = tf.Graph()
+with g.as_default():
+    a = tf.constant([[10,10],[11.,1.]])
+    x = tf.constant([[1.,0.],[0.,1.]])
+    b = tf.Variable(12.)
+    y = tf.matmul(a, x) + b
+    init_op = tf.global_variables_initializer()
 
-    <meta name="description" content="AutoGraph, recently introduced in Tensorflow 2.0, allows transforming a subset of Python syntax into its compact and high-performance graph representation. Although powerful, AutoGraph and `tf.function` hide some subtlety that is worth knowing." />
+with tf.Session() as sess:
+    sess.run(init_op)
+    print(sess.run(y))
+</code></pre></section><section class="aligncenter"><h2>TensorFlow 2.0 solution: eager execution</h2><pre><code class="language-python">def f():
+    a = tf.constant([[10,10],[11.,1.]])
+    x = tf.constant([[1.,0.],[0.,1.]])
+    b = tf.Variable(12.)
+    y = tf.matmul(a, x) + b
+    return y
+print([f().numpy() for _ in range(10)])
+</code></pre><p><b>Every tf.* op, produces a <code>tf.Tensor</code> object</b></p></section><section class="aligncenter"><h2>From eager function to tf.function</h2><pre><code class="language-python">@tf.function
+def f():
+    a = tf.constant([[10,10],[11.,1.]])
+    x = tf.constant([[1.,0.],[0.,1.]])
+    b = tf.Variable(12.)
+    y = tf.matmul(a, x) + b
+    print(&quot;PRINT: &quot;, y)
+    tf.print(&quot;TF-PRINT: &quot;, y)
+    return y
 
-    <meta property="og:title" content="Dissecting tf.function to discover AutoGraph strengths and subtleties" />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://pgaleone.eu/tensorflow/tf.function/2019/03/21/dissecting-tf-function-part-1/" />
-    <meta property="og:image" content="" />
-    <meta property="og:site_name" content="" />
-    <meta property="og:description" content="AutoGraph, recently introduced in Tensorflow 2.0, allows transforming a subset of Python syntax into its compact and high-performance graph representation. Although powerful, AutoGraph and `tf.function` hide some subtlety that is worth knowing." />
-    <title>
-      Dissecting tf.function to discover AutoGraph strengths and subtleties
-    </title>
-  <link href="vendor.5.106cd96ea5e09c24117c.css" rel="stylesheet"><link href="main.1.2dd0a43942dfdfe57b35.css" rel="stylesheet"></head>
+f()
+</code></pre></section><section class="aligncenter"><h2>From eager function to tf.function</h2><pre><code class="language-text">PRINT:  Tensor(&quot;add:0&quot;, shape=(2, 2), dtype=float32)
+</code></pre></section><section class="aligncenter"><h2>From eager function to tf.function</h2><pre><code class="language-text">ValueError: tf.function-decorated function tried to create variables on non-first call.
+</code></pre><p><img src="images/wat-cat.jpg" alt="wat"></p></section><section class="aligncenter"><h2>Lesson #1: functions that create a state</h2><blockquote><p>A <code>tf.Variable</code> object in eager mode is just a Python object that gets destroyed as soon as it goes out of scope.</p></blockquote><p>​​​</p><blockquote><p>A <code>tf.Variable</code> object in a tf.function-decorated function is the definition of a node in a persistent graph (eager execution disabled).</p></blockquote></section><section class="aligncenter"><h2>The solution</h2><pre><code class="language-python">class F():
+    def __init__(self):
+        self._b = None
 
-  <body>
-    <div id="root"></div>
-  <script type="text/javascript" src="runtime.5bd74befb5e3b5277843.bundle.js"></script><script type="text/javascript" src="vendor.5.106cd96ea5e09c24117c.bundle.js"></script><script type="text/javascript" src="main.1.2dd0a43942dfdfe57b35.bundle.js"></script></body>
-</html>
+    @tf.function
+    def __call__(self):
+        a = tf.constant([[10, 10], [11., 1.]])
+        x = tf.constant([[1., 0.], [0., 1.]])
+        if self._b is None:
+            self._b = tf.Variable(12.)
+        y = tf.matmul(a, x) + self._b
+        print(&quot;PRINT: &quot;, y)
+        tf.print(&quot;TF-PRINT: &quot;, y)
+        return y
+
+f = F()
+f()
+</code></pre></section><section class="aligncenter"><h2>Lesson #2: eager function is not graph-convertible as is</h2><blockquote><p>There is no 1:1 match between eager execution and the graph built by <code>@tf.function</code>.</p><p>Define the function thinking about the graph that is being built.</p></blockquote></section><section class="aligncenter section-title"><h1>Change the input type</h1><ul><li><strong>Python</strong> is a dynamically-typed language</li><li><strong>TensorFlow</strong> is a strictly statically typed framework</li></ul></section><section class="aligncenter"><h2>The function</h2><pre><code class="language-python">@tf.function
+def f(x):
+    print(&quot;Python execution: &quot;, x)
+    tf.print(&quot;Graph execution: &quot;, x)
+    return x
+</code></pre><p><b>The function parameters type is used to create a graph, that is a statically typed object, and to assign it an ID</b></p></section><section class="aligncenter"><h2>tf.Tensor as input</h2><pre><code class="language-python">print(&quot;##### float32 test #####&quot;)
+a = tf.constant(1, dtype=tf.float32)
+print(&quot;first call&quot;)
+f(a)
+a = tf.constant(1.1, dtype=tf.float32)
+print(&quot;second call&quot;)
+f(a)
+
+print(&quot;##### uint8 test #####&quot;)
+
+b = tf.constant(2, dtype=tf.uint8)
+print(&quot;first call&quot;)
+f(b)
+b = tf.constant(3, dtype=tf.uint8)
+print(&quot;second call&quot;)
+f(b)
+</code></pre></section><section class="aligncenter"><h2>tf.Tensor as input</h2><pre><code class="language-text">##### float32 test #####
+first call
+Python execution:  Tensor(&quot;x:0&quot;, shape=(), dtype=float32)
+Graph execution:  1
+second call
+Graph execution:  1.1
+
+##### uint8 test #####
+first call
+Python execution:  Tensor(&quot;x:0&quot;, shape=(), dtype=uint8)
+Graph execution:  2
+second call
+Graph execution:  3
+</code></pre><p><b>Everything goes as we expect</b></p></section><section class="aligncenter"><h2>Inspecting the function</h2><pre><code class="language-python">tf.autograph.to_code(f.python_function)
+</code></pre><pre><code class="language-python">def tf__f(x):
+  try:
+    with ag__.function_scope(&#x27;f&#x27;):
+      do_return = False
+      retval_ = None
+      with ag__.utils.control_dependency_on_returns(ag__.converted_call(print, None, ag__.ConversionOptions(recursive=True, force_conversion=False, optional_features=ag__.Feature.ALL, internal_convert_user_code=True), (&#x27;Python execution: &#x27;, x), {})):
+        tf_1, x_1 = ag__.utils.alias_tensors(tf, x)
+        with ag__.utils.control_dependency_on_returns(ag__.converted_call(&#x27;print&#x27;, tf_1, ag__.ConversionOptions(recursive=True, force_conversion=False, optional_features=ag__.Feature.ALL, internal_convert_user_code=True), (&#x27;Graph execution: &#x27;, x_1), {})):
+          x_2 = ag__.utils.alias_tensors(x_1)
+          do_return = True
+          retval_ = x_1
+          return retval_
+  except:
+    ag__.rewrite_graph_construction_error(ag_source_map__)
+</code></pre></section><section class="aligncenter"><h2>Inspecting the function</h2><pre><code class="language-python">with ag__.utils.control_dependency_on_returns(
+        ag__.converted_call(
+            print, None, ag__.ConversionOptions(
+                recursive=True,
+                force_conversion=False,
+                optional_features=ag__.Feature.ALL,
+                internal_convert_user_code=True),
+            (&#x27;Python execution: &#x27;, x), {})
+        ):
+</code></pre><p><b><code>converted_call</code> <code>owner</code> parameter is <code>None</code>: this line becomes a <code>tf.no_op()</code></b></p></section><section class="aligncenter"><h2>Python native type as input</h2><pre><code class="language-python">def printinfo(x):
+  print(&quot;Type: &quot;, type(x), &quot; value: &quot;, x)
+
+print(&quot;##### int test #####&quot;)
+print(&quot;first call&quot;)
+a = 1
+printinfo(a)
+f(a)
+print(&quot;second call&quot;)
+b = 2
+printinfo(b)
+f(b)
+
+print(&quot;##### float test #####&quot;)
+print(&quot;first call&quot;)
+a = 1.0
+printinfo(a)
+f(a)
+print(&quot;second call&quot;)
+b = 2.0
+printinfo(b)
+f(b)
+</code></pre></section><section class="aligncenter"><h2>Python native type as input</h2><h3>Call with Python int</h3><pre><code class="language-text">##### int test #####
+first call
+Type:  &lt;class &#x27;int&#x27;&gt;  value:  1
+Python execution:  1
+Graph execution:  1
+
+second call
+Type:  &lt;class &#x27;int&#x27;&gt;  value:  2
+Python execution:  2
+Graph execution:  2
+</code></pre><p><b>The graph is being recreated at every function invocation</b></p></section><section class="aligncenter"><h2>Python native type as input</h2><h3>Call with Python float</h3><pre><code class="language-text">##### float test #####
+first call
+Type:  &lt;class &#x27;float&#x27;&gt;  value:  1.0
+Graph execution:  1
+second call
+Type:  &lt;class &#x27;float&#x27;&gt;  value:  2.0
+Graph execution:  2
+</code></pre><ul><li><b>The return type is WRONG.</b></li><li><b>The graphs built for the integers 1 and 2 is reused for the float 1.0 and 2.0</b></li></ul></section><section class="aligncenter"><p><img src="images/wat-tall-cat.png" alt="wat"></p></section><section class="aligncenter"><h2>Lesson #3: no autoboxing</h2><blockquote><p><code>tf.function</code> does not automatically convert a Python integer to a <code>tf.Tensor</code> with dtype <code>tf.int64</code>, and so on.</p><p>The graph ID, when the input is not a <code>tf.Tensor</code> object, is built using the variable <strong>value</strong>.</p></blockquote><p>That&#x27;s why we used the same graph built for <code>f(1)</code> for <code>f(1.0)</code>, because <code>1 == 1.0</code>.</p></section><section class="aligncenter"><h2>No autoboxing: performance measurement</h2><pre><code class="language-python">@tf.function
+def g(x):
+  return x
+
+start = time.time()
+for i in tf.range(1000):
+  g(i)
+print(&quot;tf.Tensor time elapsed: &quot;, (time.time()-start))
+
+start = time.time()
+for i in range(1000):
+  g(i)
+print(&quot;Native type time elapsed: &quot;, (time.time()-start))
+</code></pre><pre><code class="language-text">tf.Tensor time elapsed:  0.41594886779785156
+Native type time elapsed:  5.189513444900513
+</code></pre></section><section class="aligncenter"><h2>Lesson #4: tf.Tensor everywhere</h2><blockquote><p>Use <code>tf.Tensor</code> everywhere.</p></blockquote></section><section class="aligncenter section-title"><h1>Python Operators</h1><pre><code class="language-python">@tf.function
+def if_elif(a, b):
+  if a &gt; b:
+    tf.print(&quot;a &gt; b&quot;, a, b)
+  elif a == b:
+    tf.print(&quot;a == b&quot;, a, b)
+  elif a &lt; b:
+    tf.print(&quot;a &lt; b&quot;, a, b)
+  else:
+    tf.print(&quot;wat&quot;)
+x = tf.constant(1)
+if_elif(x,x)
+</code></pre></section><section class="aligncenter"><h2>Python operators</h2><p><b>wat</b></p><p><img src="images/wat-dog.jpg" alt="wat dog"></p></section><section class="aligncenter"><h2>Problems</h2><ul><li>Python <code>__eq__</code> is not converted to <code>tf.equal</code> (even in eager mode!) but checks for the Python variable identity.</li><li>AutoGraph converts the <code>if</code>, <code>elif</code>, <code>else</code> statements but</li><li>AutoGraph does not converts the Python built-in operators (<code>__eq__</code>, <code>__lt__</code>, <code>__gt__</code>)</li></ul></section><section class="aligncenter"><h2>Python operators</h2><pre><code class="language-python">@tf.function
+def if_elif(a, b):
+  if tf.math.greater(a, b):
+    tf.print(&quot;a &gt; b&quot;, a, b)
+  elif tf.math.equal(a, b):
+    tf.print(&quot;a == b&quot;, a, b)
+  elif tf.math.less(a, b):
+    tf.print(&quot;a &lt; b&quot;, a, b)
+  else:
+    tf.print(&quot;wat&quot;)
+</code></pre></section><section class="aligncenter"><h2>Lesson 5: operators</h2><blockquote><p>Use the TensorFlow operators explicitly everywhere.</p></blockquote></section><section class="aligncenter section-title"><h1>Recap</h1><ol><li><code>tf.Variable</code> need a special treatment.</li><li>Think about the graph while designing the function: eager to graph is not straightforward.</li><li>There is no autoboxing of Python native types, therefore</li><li>Use <code>tf.Tensor</code> everywhere.</li><li>Use the TensorFlow operators explicitly everywhere.</li></ol></section><section class="aligncenter"><blockquote><h2>Hands-On Neural Networks with TensorFlow 2.0</h2><p>Understanding the TensorFlow architecture, from static graph to eager execution, designing Deep Neural Networks.</p></blockquote><p>Stay updated: <a href="https://pgaleone.eu/subscribe">https://pgaleone.eu/subscribe</a></p></section><section class="aligncenter section-title"><h1>The End</h1><br><p>Thank you 😄</p><br><ul><li>Blog: <a href="https://pgaleone.eu/">https://pgaleone.eu/</a></li><li>Twitter: <a href="https://twitter.com/paolo_galeone">https://twitter.com/paolo_galeone</a></li><li>GitHub: <a href="https://github.com/galeone">https://github.com/galeone</a> (the slides of this talk are here!)</li></ul></section></article></div><script type="text/javascript" src="runtime.dac228d328bf1ce9d97c.bundle.js"></script><script type="text/javascript" src="vendor.7.fba9d2bb01998ccb161d.bundle.js"></script><script type="text/javascript" src="main.3.c6731e655aaf6ac74333.bundle.js"></script></body></html>
