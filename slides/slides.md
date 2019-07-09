@@ -593,7 +593,7 @@ This behavior surprised me a lot, and I spent some time to figure out what's goi
 
 ## Lesson #3: no autoboxing
 
-<!--
+<!-- note
 **read the lesson**.
 
 This is a design choice I don't like about tf.function since it makes the graph conversion of a function not natural.
@@ -745,7 +745,7 @@ Use the TensorFlow operations everywhere, seriously.
 
 <!-- sectionTitle: Recap -->
 <!-- note
-OK now just a recap of what we've seen in this presentation.
+OK we are reaching the end of the talks, so here it is a recap of what we learned.
 
 **READ THE POINTS**
 -->
