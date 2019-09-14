@@ -743,6 +743,14 @@ Use the TensorFlow operations everywhere, seriously.
 
 ---
 
+## Things are changing
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Hey <a href="https://twitter.com/paolo_galeone?ref_src=twsrc%5Etfw">@paolo_galeone</a>, great blog post series on tf.function! I&#39;ve tried the if_elif_else case (from part 3: <a href="https://t.co/HukmaUY4dL">https://t.co/HukmaUY4dL</a>) this afternoon, and it looks like it has been fixed in 2.0.0rc0. Thought you might want to know</p>&mdash; Raphael Meudec (@raphaelmeudec) <a href="https://twitter.com/raphaelmeudec/status/1172510929659019264?ref_src=twsrc%5Etfw">September 13, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+The lessons presented, however, are all still valid: following them helps you writing idiomatic TensorFlow 2.0 code.
+
+---
+
 <!-- sectionTitle: Recap -->
 <!-- note
 OK we are reaching the end of the talks, so here it is a recap of what we learned.
@@ -767,7 +775,7 @@ If you enjoyed this talk and you want to get informed of new articles published 
 
 > ## Hands-On Neural Networks with TensorFlow 2.0
 > 
-> Understanding the TensorFlow architecture, from static graph to eager execution, designing Deep Neural Networks.
+> Understand TensorFlow, from static graph to eager execution, and design neural networks.
 
 Stay updated: https://pgaleone.eu/subscribe
 
@@ -785,4 +793,4 @@ Thank you :smile:
 
 - Blog: https://pgaleone.eu/
 - Twitter: https://twitter.com/paolo_galeone
-- GitHub: https://github.com/galeone (the slides of this talk are here!)
+- GitHub: https://github.com/galeone
