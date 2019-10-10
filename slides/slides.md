@@ -774,9 +774,7 @@ The talk is finished, and I hope you enjoyed it. I just want to let you know tha
 If you enjoyed this talk and you want to get informed of new articles published on the blog, or when the book is out, just leave your email to the subscribe page.
 -->
 
-> ## Hands-On Neural Networks with TensorFlow 2.0
-> 
-> Understand TensorFlow, from static graph to eager execution, and design neural networks.
+## Hands-On Neural Networks with TensorFlow 2.0
 
 ![book cover](images/cover.png)
 
