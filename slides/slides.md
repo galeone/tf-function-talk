@@ -37,6 +37,7 @@ Computer engineer | Head of ML & CV @ ZURU Tech Italy | Machine Learning GDE
 - Blog: https://pgaleone.eu/
 - Github: [https://github.com/galeone/](galeone)
 - Twitter: [@paolo_galeone](https://twitter.com/paolo_galeone)
+- Author: [Hands-On Neural Networks with TensorFlow 2.0](https://amzn.to/2ZULPzh)
 
 ---
 
@@ -777,6 +778,8 @@ If you enjoyed this talk and you want to get informed of new articles published 
 > 
 > Understand TensorFlow, from static graph to eager execution, and design neural networks.
 
+![book cover](images/cover.png)
+
 Stay updated: https://pgaleone.eu/subscribe
 
 ---
@@ -791,6 +794,6 @@ Thank you :smile:
 
 <br />
 
-- Blog: https://pgaleone.eu/
+- Blog: https://pgaleone.eu/ (newletter https://pgaleone.eu/subscribe)
 - Twitter: https://twitter.com/paolo_galeone
 - GitHub: https://github.com/galeone
