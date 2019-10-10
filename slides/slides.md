@@ -792,6 +792,6 @@ Thank you :smile:
 
 <br />
 
-- Blog: https://pgaleone.eu/ (newletter https://pgaleone.eu/subscribe)
+- Blog: https://pgaleone.eu/ (newsletter https://pgaleone.eu/subscribe)
 - Twitter: https://twitter.com/paolo_galeone
 - GitHub: https://github.com/galeone
